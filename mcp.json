@@ -1,7 +1,6 @@
 {
   "mcpServers": {
     "findymail": {
-      "type": "http",
       "url": "https://mcp.findymail.com/mcp"
     }
   }

@@ -35,7 +35,7 @@ git clone https://github.com/Findymail/findymail-cursor-plugin.git
 
 The first time the agent calls a Findymail tool, Cursor opens your browser on Findymail's sign-in page. Approve the connection and it is reused in every later session. There is no API key to paste.
 
-If the tools stop responding with an authentication error, open **Cursor Settings > MCP**, find the `findymail` server, and reconnect.
+If the browser did not open, or the tools answer with an authentication error, open **Cursor Settings > Tools & MCP** (or **Customize > MCP** in the sidebar), find the `findymail` server, and click **Login** or **Needs authentication**. If nothing shows up there, open the Output panel (Ctrl+Shift+U or Cmd+Shift+U), pick **MCP Logs**, and look for the `findymail` entries.
 
 ### Using an API key instead
 
@@ -45,7 +45,6 @@ For a machine without a browser, or a scripted setup, point Cursor at the same s
 {
   "mcpServers": {
     "findymail": {
-      "type": "http",
       "url": "https://mcp.findymail.com/mcp",
       "headers": {
         "Authorization": "Bearer ${env:FINDYMAIL_API_KEY}"

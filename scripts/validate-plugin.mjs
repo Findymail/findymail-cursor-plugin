@@ -95,6 +95,23 @@ if (manifest) {
   }
 }
 
+const marketplace = await readJson(path.join(root, ".cursor-plugin", "marketplace.json"), "Marketplace manifest");
+if (marketplace && manifest) {
+  if (typeof marketplace.name !== "string" || !pluginNamePattern.test(marketplace.name)) {
+    errors.push('marketplace.json "name" must be lowercase kebab-case.');
+  }
+  if (!marketplace.owner?.name) errors.push('marketplace.json "owner.name" is required.');
+  const entries = Array.isArray(marketplace.plugins) ? marketplace.plugins : [];
+  if (entries.length !== 1) errors.push("marketplace.json must list exactly one plugin in this single-plugin repo.");
+  for (const entry of entries) {
+    if (entry.name !== manifest.name) errors.push(`marketplace.json plugin name "${entry.name}" does not match plugin.json name "${manifest.name}".`);
+    const source = typeof entry.source === "string" ? entry.source : "";
+    if (!(await exists(path.join(root, source, ".cursor-plugin", "plugin.json")))) {
+      errors.push(`marketplace.json plugin source "${source}" does not contain .cursor-plugin/plugin.json.`);
+    }
+  }
+}
+
 const mcp = await readJson(path.join(root, "mcp.json"), "mcp.json");
 if (mcp) {
   const servers = mcp.mcpServers;

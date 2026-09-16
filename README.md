@@ -18,12 +18,17 @@ The plugin ships the Findymail MCP server connection plus three skills and a rul
 
 Open **Cursor Settings > Plugins**, search for **Findymail**, and install. Then start a new agent thread: Cursor loads a plugin's skills, rules and MCP servers at session start.
 
+### As a team marketplace
+
+In the Cursor dashboard, open **Plugins > Team Marketplaces > Add Marketplace > Import from Repo** and enter `Findymail/findymail-cursor-plugin`. The repo carries a `.cursor-plugin/marketplace.json`, so the plugin shows up for everyone on the team.
+
 ### From this repository, for local testing
 
-Clone the repo into Cursor's local plugin folder and reload Cursor:
+Copy the plugin into Cursor's local plugin folder and restart Cursor. Cursor ignores symlinks that point outside that folder, so it has to be a real copy:
 
 ```bash
-git clone https://github.com/Findymail/findymail-cursor-plugin.git ~/.cursor/plugins/local/findymail
+git clone https://github.com/Findymail/findymail-cursor-plugin.git
+./findymail-cursor-plugin/scripts/install-local.sh
 ```
 
 ## Sign in
@@ -83,6 +88,7 @@ The bundled rule makes the agent state the maximum cost and ask before any run t
 
 ```
 .cursor-plugin/plugin.json   plugin manifest
+.cursor-plugin/marketplace.json  marketplace manifest (lets the repo be added as a marketplace)
 mcp.json                     the Findymail MCP server connection
 rules/                       tool selection, chaining and cost guardrails
 skills/                      one folder per skill above
@@ -96,7 +102,7 @@ scripts/validate-plugin.mjs  manifest and frontmatter checks, run in CI
 node scripts/validate-plugin.mjs
 ```
 
-The same check runs on every push and pull request. To test a change in Cursor, clone or symlink the repo into `~/.cursor/plugins/local/findymail` and reload the window.
+The same check runs on every push and pull request. To test a change in Cursor, run `scripts/install-local.sh` to copy the plugin into `~/.cursor/plugins/local/findymail`, then restart Cursor.
 
 ## Links
 

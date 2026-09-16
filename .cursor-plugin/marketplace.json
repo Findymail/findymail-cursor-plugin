@@ -1,0 +1,19 @@
+{
+  "name": "findymail",
+  "displayName": "Findymail",
+  "owner": {
+    "name": "Findymail",
+    "url": "https://www.findymail.com"
+  },
+  "metadata": {
+    "description": "Verified B2B emails, phone numbers and lead lists from the Cursor agent, powered by Findymail.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "findymail",
+      "source": "./",
+      "description": "Find verified B2B emails and phone numbers, verify addresses, and build lead lists from a plain-language ICP."
+    }
+  ]
+}

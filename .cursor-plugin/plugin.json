@@ -1,0 +1,34 @@
+{
+  "name": "findymail",
+  "displayName": "Findymail",
+  "version": "1.0.0",
+  "description": "Find verified B2B emails and phone numbers, verify addresses, and build lead lists from a plain-language ICP, without leaving Cursor.",
+  "author": {
+    "name": "Findymail",
+    "url": "https://www.findymail.com"
+  },
+  "homepage": "https://app.findymail.com/docs",
+  "repository": "https://github.com/Findymail/findymail-cursor-plugin",
+  "license": "MIT",
+  "logo": "assets/logo.png",
+  "keywords": [
+    "findymail",
+    "email-finder",
+    "email-verification",
+    "lead-generation",
+    "b2b-data",
+    "enrichment",
+    "prospecting",
+    "sales",
+    "gtm",
+    "mcp"
+  ],
+  "category": "integrations",
+  "tags": [
+    "findymail",
+    "sales",
+    "enrichment",
+    "email",
+    "mcp"
+  ]
+}

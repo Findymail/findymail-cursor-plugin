@@ -1,0 +1,43 @@
+---
+description: How to drive the Findymail MCP server. Which tool to reach for, how the tools chain, what each call costs in credits, and the guardrails around spending and exclusion lists. Apply whenever a findymail tool is used or the user asks for emails, phone numbers, lead lists, or company data.
+alwaysApply: false
+---
+
+The `findymail` MCP server exposes 14 tools. Every lookup tool works on ONE record per call: there is no batch endpoint, so a list of 200 people is 200 calls. Loop, keep going when a single call fails, and write partial results as you go.
+
+## Pick the tool
+
+| Need | Tool | Input | Cost |
+|------|------|-------|------|
+| Email for one person | `find_email` | `name` + `domain`, or `linkedin_url` (URL wins if both) | 1 finder credit if found, free otherwise |
+| People holding given titles at a company | `find_employees` | `website`, `job_titles` (max 10), `count` (1 to 5) | 1 finder credit per contact returned |
+| Phone number | `find_phone` | `linkedin_url` only | 10 finder credits if found, free otherwise |
+| Is this address deliverable | `verify_email` | `email` | 1 verifier credit (separate pool) |
+| Who owns this address | `reverse_email_lookup` | `email`, `with_profile` | 1 credit for the LinkedIn URL, 2 with full profile, free if nobody matches |
+| Firmographics for one company | `enrich_company` | `domain`, `linkedin_url`, or `name` (domain wins) | 1 finder credit if found |
+| Companies matching a description | `generate_lead_list` then `get_lead_list_results` | plain-language `query`, `mode`, enrichment flags | see below |
+| Companies similar to a seed | `lookalike_search` | `seed` domain, `same_country`, `same_size`, `limit` | 1 finder credit per 10 results |
+| Manage excluded domains | `list_exclusion_lists`, `create_exclusion_list`, `list_exclusion_domains`, `add_exclusion_domains`, `remove_exclusion_domains` | see tool schemas | free |
+
+`generate_lead_list` cost: 1 credit per 10 companies in `broad` mode or 1 credit per company in `targeted` mode, plus 1 per contact found, 1 per email found, and 10 per phone found. `get_lead_list_results` is free.
+
+## How the tools chain
+
+- Company list -> people: `generate_lead_list` or `lookalike_search` -> `find_employees` (or let `generate_lead_list` fetch contacts itself with `find_contact: true`).
+- Person -> email: `find_employees` returns name, title and LinkedIn URL but no email. Pass the LinkedIn URL (preferred) or name + domain to `find_email`.
+- Anything -> phone: `find_phone` needs a LinkedIn URL. Get it from `find_employees`, `reverse_email_lookup`, or the user. A phone cannot be found from a name or an email alone.
+- Unknown email -> person: `reverse_email_lookup`. It says nothing about deliverability; use `verify_email` for that.
+- Company name only -> domain: `enrich_company` by name, or ask the user when the name is ambiguous.
+
+## Guardrails
+
+- Emails from `find_email` and `generate_lead_list` are already verified. Do not run `verify_email` on them.
+- Never guess or construct an email address. A not-found result is the answer; report it as not found.
+- Before a run that can spend more than 25 credits (a list of 25+ people, a lead list with contacts, any phone lookups), state the maximum cost and get the user's go-ahead.
+- Phone lookups are 10 credits each. Only call `find_phone` when the user explicitly asked for phone numbers.
+- For a lead list, start with a small validation run (`limit` 10 to 20, `find_contact: false`), review the companies, refine the query, then scale up. Never start a second `generate_lead_list` for the same query while the first is still processing: each run is billed.
+- `exclusion_list_ids` on `generate_lead_list`: pass exactly `[0]` (every exclusion source you can reach), exactly `[-1]` (no filtering), or real list ids. Never mix markers with ids. `lookalike_search` accepts real ids only.
+- `remove_exclusion_domains` is permanent and takes domain ids, not names. Call `list_exclusion_domains` with an explicit `list_id` first, show the user what will be removed, and confirm.
+- `add_exclusion_domains` applies the first 50 domains immediately and queues the rest; read the list back before relying on it.
+- Error handling: 402 means the account is out of credits, stop and point the user to https://app.findymail.com to top up. 429 means rate limited, wait and retry. 401 means the sign-in expired, ask the user to reconnect the Findymail MCP server in Cursor settings.
+- Free-mail domains (gmail.com, outlook.com, yahoo.com) are not company domains. `find_email` needs the employer's domain.

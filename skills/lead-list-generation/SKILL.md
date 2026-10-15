@@ -1,6 +1,6 @@
 ---
 name: lead-list-generation
-description: Build a list of target companies and decision-maker contacts from a plain-language ideal customer profile, or find lookalikes of a seed company, using the Findymail tools generate_lead_list, get_lead_list_results, lookalike_search and the exclusion-list tools. Use when the user asks to generate leads, build a prospect or target-account list, find companies similar to one they name, or keep existing customers and competitors out of prospecting.
+description: Build a list of target companies and decision-maker contacts from a plain-language ideal customer profile, or find lookalikes of a seed company, using the Findymail tools generate_lead_list, get_lead_list_results, lookalike_search, the technology and credit tools and the exclusion-list tools. Use when the user asks to generate leads, build a prospect or target-account list, find companies similar to one they name, or keep existing customers and competitors out of prospecting.
 ---
 
 # Lead list generation
@@ -21,6 +21,9 @@ Findymail turns a description of your ideal customer into companies, then into n
 |------|------|
 | `generate_lead_list` | `broad` mode: 1 credit per 10 companies. `targeted` mode: 1 credit per company. Plus 1 per contact found, 1 per email found, 10 per phone found. |
 | `get_lead_list_results` | Free |
+| `get_credit_balance` | Free |
+| `search_technologies` | Free |
+| `get_company_technologies` | 1 credit when technologies are found |
 | `lookalike_search` | 1 credit per 10 results |
 | `list_exclusion_lists`, `create_exclusion_list`, `list_exclusion_domains`, `add_exclusion_domains`, `remove_exclusion_domains` | Free |
 
@@ -36,6 +39,8 @@ Findymail turns a description of your ideal customer into companies, then into n
 
 Include whatever the user knows: industry and sub-industry, business model, geography, size, funding stage, technologies, and any signal such as "recently hired a VP of Sales". Ask for the missing piece when the brief is too thin to search on.
 
+When the brief names technologies ("companies using HubSpot"), check each one with `search_technologies` first and use the catalog's spelling in the query. To confirm a short list of companies really runs a tool, call `get_company_technologies` with the domain and a `technologies` filter.
+
 ### 2. Validate before scaling
 
 Run a small pass first:
@@ -50,11 +55,12 @@ Show the user the companies. If they are off, refine the query and run again. On
 
 - `broad`: fast export, 1 credit per 10 companies, matches loosely. Use for large exports the user will filter themselves.
 - `targeted`: AI-qualified, 1 credit per company, matches strictly. Use when every row should fit the brief.
-- `find_contact` + `target_job_titles`: one contact per company matching the titles (+1 credit per contact found). Default titles are `["CEO"]`. Set the titles the user actually sells to.
+- `find_contact` + `target_job_titles`: one contact per company matching the titles (+1 credit per contact found). Default titles are `["CEO"]`. Set the titles the user actually sells to. When the user has a priority order, pass up to 3 tiers instead of a flat list, e.g. `[["CTO"], ["VP Engineering", "Head of Engineering"], ["CEO"]]`: the next tier is only tried at companies where the previous one found nobody.
+- `save_to_list_id`: a contact list (`list_contact_lists`, or `create_contact_list`) that every contact found is saved into, when the user wants them in Findymail as well as in the CSV.
 - `find_email`: +1 credit per email found. Requires `find_contact`.
 - `find_phone`: +10 credits per phone found. Requires `find_contact`. Only when the user asked for phones.
 
-State the maximum cost before running. Example for 200 companies, targeted, one contact with email each: 200 + 200 + 200 = 600 credits at most. Get the user's go-ahead for anything over 25 credits.
+State the maximum cost before running. Example for 200 companies, targeted, one contact with email each: 200 + 200 + 200 = 600 credits at most. Call `get_credit_balance` and compare: if the maximum cost is more than `credits` left, say so and offer a smaller `limit`. Get the user's go-ahead for anything over 25 credits.
 
 ### 4. Apply exclusions
 
@@ -69,7 +75,9 @@ Before the full run, call `list_exclusion_lists` and ask whether existing custom
 
 `generate_lead_list` returns a `hash` and nothing else. Quote the hash in your reply immediately, so the run is recoverable if the session is interrupted.
 
-Then call `get_lead_list_results` with the hash. It waits up to 60 seconds. If the run is still processing it returns progress; call it again until it returns data. Never restart the run.
+Then call `get_lead_list_results` with the hash. It waits up to 50 seconds. If the run is still processing it returns `status: "processing"` and a `progress` percentage; call it again until it returns `status: "success"`. Never restart the run. Pass `wait: false` when you only want to report progress without blocking.
+
+Results come one page at a time: `data` holds the page, `total` the number of rows in the whole run. Call again with `page` + 1 (and `per_page` up to 500) while `has_more` is true. Write each page to the CSV as it arrives rather than keeping every row in the conversation.
 
 ### 6. Lookalikes
 
@@ -77,7 +85,7 @@ Then call `get_lead_list_results` with the hash. It waits up to 60 seconds. If t
 
 ### 7. Deliver
 
-- Write `leads-<short-slug>-<YYYY-MM-DD>.csv` in the working directory with one row per company (name, domain, industry, size, location, and any other fields returned) and, when contacts were requested, the contact's name, title, LinkedIn URL, email and phone.
+- Write `leads-<short-slug>-<YYYY-MM-DD>.csv` in the working directory, page by page, with one row per company (name, domain, industry, size, location, and any other fields returned) and, when contacts were requested, the contact's name, title, LinkedIn URL, email and phone.
 - Reply with a summary table of the first 10 rows, the total count, the run hash, and the maximum credits spent.
 - If an `add_to_exclusion_list_id` was used, say which list now holds these domains.
 

@@ -1,7 +1,7 @@
 {
   "name": "findymail",
   "displayName": "Findymail",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Find verified B2B emails and phone numbers, verify addresses, and build lead lists from a plain-language ICP, without leaving Cursor.",
   "author": {
     "name": "Findymail",

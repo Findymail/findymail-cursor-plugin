@@ -66,7 +66,7 @@ Create a token at [app.findymail.com/user/api-tokens](https://app.findymail.com/
 
 ## Tools and credits
 
-The MCP server exposes 14 tools. Lookups that find nothing are free.
+The MCP server exposes 29 tools. Lookups that find nothing are free.
 
 | Tool | Cost |
 |------|------|
@@ -77,9 +77,15 @@ The MCP server exposes 14 tools. Lookups that find nothing are free.
 | `reverse_email_lookup` | 1 finder credit, 2 with the full profile |
 | `enrich_company` | 1 finder credit per company found |
 | `generate_lead_list` | 1 credit per 10 companies (broad) or per company (targeted), plus 1 per contact, 1 per email, 10 per phone |
-| `get_lead_list_results` | Free |
+| `get_lead_list_results` | Free (one page of results per call) |
 | `lookalike_search` | 1 finder credit per 10 results |
 | `list_exclusion_lists`, `create_exclusion_list`, `list_exclusion_domains`, `add_exclusion_domains`, `remove_exclusion_domains` | Free |
+| `get_company_technologies` | 1 finder credit when technologies are found |
+| `search_technologies` | Free |
+| `get_credit_balance`, `get_credit_usage` | Free |
+| `list_contact_lists`, `create_contact_list`, `update_contact_list`, `delete_contact_list`, `list_contacts` | Free |
+| `list_signals`, `get_signal`, `list_monitors`, `update_monitor`, `delete_monitor` | Free |
+| `create_monitor` | 1 to 3 finder credits per signal the monitor delivers, until it is deleted or reaches its `max_matches` cap |
 
 The bundled rule makes the agent state the maximum cost and ask before any run that can spend more than 25 credits, and never call `find_phone` unless you asked for phone numbers.
 
